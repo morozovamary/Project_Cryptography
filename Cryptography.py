@@ -1,35 +1,67 @@
 from random import randint
 
-def Caesar_crypt(message):
-    print('Введите шаг шифрования')
-    shift = int(input())
+
+class Const:
+    alphabet_upper = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
+    alphabet_lower = 'абвгдежзийклмнопрстуфхцчшщъыьэюя'
+    len_of_alphabet = 32
+    regular_frequency = [8.01, 1.59, 4.54, 1.70, 2.98, 8.45, 0.04, 0.97, 1.65, 7.35, 1.21, 3.49, 4.40,
+                         3.21, 6.70, 10.97, 2.81, 4.73, 5.47, 6.26, 2.62, 0.26, 0.97, 0.48, 1.44, 0.73,
+                         0.36, 0.04, 1.90, 1.74, 0.32, 0.64, 2.01]
+    order_first_russian_letter = 1040
+    order_last_russian_letter = 1105
+    vernam_shift = 16
+
+
+def get_message(way_in):
+    with open(way_in, 'r', encoding="utf-8") as f:
+        text = f.readlines()
+    message = ''
+    for i in text:
+        string = i
+        if string[-1] == '\n':
+            string = string[:-1]
+        message = message + string + ' '
+    return message
+
+
+def caesar_crypt(way_in, key):
+    message = get_message(way_in)
     crypt_message = ''
-    alphabet = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
     for i in message:
-        letter = alphabet.find(i)
-        new_letter = (letter + shift) % 33
-        if i in alphabet:
-            crypt_message += alphabet[new_letter]
+        if i.islower():
+            letter = Const.alphabet_lower.find(i)
+        else:
+            letter = Const.alphabet_upper.find(i)
+        new_letter = (letter + int(key)) % Const.len_of_alphabet
+        if i in Const.alphabet_upper:
+            crypt_message += Const.alphabet_upper[new_letter]
+        elif i in Const.alphabet_lower:
+            crypt_message += Const.alphabet_lower[new_letter]
         else:
             crypt_message += i
-    file_out = (way_2, 'w')
-    file_out.write(crypt_message)
+    with open(way_in, 'a', encoding="utf-8") as f:
+        f.write('\n' + "Зашифрованное сообщение: " + crypt_message)
 
 
-def Caesar_decrypt(message):
-    print('Введите шаг шифрования')
-    shift = int(input())
+def caesar_decrypt(way_in, key):
+    message = get_message(way_in)
     decrypt_message = ''
-    alphabet = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
     for i in message:
-        letter = alphabet.find(i)
-        new_letter = (letter - shift + 33) % 33
-        if i in alphabet:
-            decrypt_message += alphabet[new_letter]
+        if i.islower():
+            letter = Const.alphabet_lower.find(i)
+        else:
+            letter = Const.alphabet_upper.find(i)
+        new_letter = (letter - int(key) + Const.len_of_alphabet) % Const.len_of_alphabet
+        if i in Const.alphabet_upper:
+            decrypt_message += Const.alphabet_upper[new_letter]
+        elif i in Const.alphabet_lower:
+            decrypt_message += Const.alphabet_lower[new_letter]
         else:
             decrypt_message += i
-    file_out = (way_2, 'w')
-    file_out.write(decrypt_message)
+    print(decrypt_message)
+    with open(way_in, 'a', encoding="utf-8") as f:
+        f.write('\n' + "Расшифрованное сообщение: " + decrypt_message)
 
 
 def generate_key(message, key):
@@ -42,144 +74,149 @@ def generate_key(message, key):
     return ("".join(key))
 
 
-def Vigener_crypt(message):
-    print('Введите ключ шифрования')
-    key = str(input())
+def vigener_crypt(way_in, key):
+    message = get_message(way_in)
     key = generate_key(message, key)
+    key_upper = key.upper()
+    key_lower = key.lower()
     crypt_message = ''
     for i in range(len(message)):
-        x = (ord(message[i]) + ord(key[i])) % 33
-        x += ord('А')
-        crypt_message += chr(x)
-    file_out = (way_2, 'w')
-    file_out.write(crypt_message)
+        if ord(message[i]) < Const.order_first_russian_letter or ord(message[i]) > Const.order_last_russian_letter:
+            crypt_message += message[i]
+        else:
+            if message[i].islower():
+                x = (ord(message[i]) + ord(key_lower[i]) - 1) % Const.len_of_alphabet + ord('а')
+            else:
+                x = (ord(message[i]) + ord(key_upper[i]) + 1) % Const.len_of_alphabet + ord('А')
+            crypt_message += chr(x)
+    with open(way_in, 'a', encoding="utf-8") as f:
+        f.write('\n' + "Зашифрованное сообщение: " + crypt_message)
 
 
-def Vigener_decrypt(message):
-    print('Введите ключ шифрования')
-    key = str(input())
+def vigener_decrypt(way_in, key):
+    message = get_message(way_in)
     key = generate_key(message, key)
+    key_upper = key.upper()
+    key_lower = key.lower()
     decrypt_message = ''
     for i in range(len(message)):
-        x = (ord(message[i]) - ord(key[i]) + 33) % 33
-        x += ord('А')
-        decrypt_message += chr(x)
-    file_out = (way_2, 'w')
-    file_out.write(crypt_message)
+        if ord(message[i]) < Const.order_first_russian_letter or ord(message[i]) > Const.order_last_russian_letter:
+            decrypt_message += message[i]
+        else:
+            if message[i].islower():
+                x = (ord(message[i]) - ord(key_lower[i]) + 1) % Const.len_of_alphabet + ord('а')
+            else:
+                x = (ord(message[i]) - ord(key_upper[i]) - 1) % Const.len_of_alphabet + ord('А')
+            decrypt_message += chr(x)
+    with open(way_in, 'a', encoding="utf-8") as f:
+        f.write('\n' + "Расшифрованное сообщение: " + decrypt_message)
 
 
-
-def Vernam_crypt(message):
-    keys = ''
+def vernam_crypt(way_in):
+    message = get_message(way_in)
     crypt_message = ''
-    for symbol in message:
-        key = randint(0, 32)
-        alphabet = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
-        keys += alphabet[key]
-        crypt_message += chr((ord(symbol) + key - 17) % 33 + ord('А'))
-    file_out = (way_2, 'w')
-    file_out.write(crypt_message, '\n')
-    file_out.write('Ключ шифрования: ', keys)
+    keys_upper = ''
+    keys_lower = ''
+    for i in range(len(message) - 1):
+        symbol = message[i]
+        key = randint(0, Const.len_of_alphabet - 1)
+        keys_upper += Const.alphabet_upper[key]
+        keys_lower += Const.alphabet_lower[key]
+        if ord(message[i]) < Const.order_first_russian_letter or ord(message[i]) > Const.order_last_russian_letter:
+            crypt_message += message[i]
+        else:
+            if message[i].islower():
+                crypt_message += chr((ord(symbol) + key - Const.vernam_shift) % Const.len_of_alphabet + ord('а'))
+            else:
+                crypt_message += chr((ord(symbol) + key - Const.vernam_shift) % Const.len_of_alphabet + ord('А'))
+    with open(way_in, 'w', encoding="utf-8") as f:
+        f.write('\n' + 'Зашифрованное сообщение: ' + crypt_message + '\n')
+        f.write('Ключ шифрования: ' + keys_upper)
 
 
-def Vernam_decrypt(message):
-    print('Введите ключ шифрования: ')
-    keys_in = str(input())
-    keys = []
-    for i in range(len(keys_in)):
-        keys.append(alphabet.find(keys_in[i]))
+def decryption(message, keys_lower, keys_upper):
     decrypt_message = ''
     for i, symbol in enumerate(message):
-        if keys[i] != '':
-            decrypt_message += chr((ord(symbol) - int(keys[i]) - 17) % 33 + ord('А'))
-    file_out = (way_2, 'w')
-    file_out.write(decrypt_message)
+        if ord(message[i]) < Const.order_first_russian_letter or ord(message[i]) > Const.order_last_russian_letter:
+            decrypt_message += message[i]
+        else:
+            if message[i].islower():
+                if i < len(keys_lower):
+                    if keys_lower[i] != '':
+                        decrypt_message += chr((ord(symbol) - int(keys_lower[i]) - Const.vernam_shift) %
+                                               Const.len_of_alphabet + ord('а'))
+            else:
+                if i < len(keys_upper):
+                    if keys_upper[i] != '':
+                        decrypt_message += chr((ord(symbol) - int(keys_upper[i]) - Const.vernam_shift) %
+                                               Const.len_of_alphabet + ord('А'))
+    return decrypt_message
 
 
-def frequency_analisys(message):
-    letters = 0
-    counter = 0
+def vernam_decrypt(way_in, key):
+    message = get_message(way_in)
+    keys_in_lower = key.lower()
+    keys_in_upper = key.upper()
+    keys_upper = []
+    keys_lower = []
+    for i in range(len(keys_in_lower)):
+        keys_upper.append(Const.alphabet_upper.find(keys_in_upper[i]))
+        keys_lower.append(Const.alphabet_lower.find(keys_in_lower[i]))
+    decrypt_message = decryption(message, keys_lower, keys_upper)
+    with open(way_in, 'a', encoding="utf-8") as f:
+        f.write('\n' + 'Расшифрованное сообщение: ' + decrypt_message)
+
+
+def my_frequency_fill(message, min_difference):
     shift = 0
-    min_difference = 100
-    difference = 0
-    crypt_message = ''
-    regular_frequency = [8.01, 1.59, 4.54, 1.70, 2.98, 8.45, 0.04, 0.97, 1.65, 7.35, 1.21, 3.49, 4.40,
-                         3.21, 6.70, 10.97, 2.81, 4.73, 5.47, 6.26, 2.62, 0.26, 0.97, 0.48, 1.44, 0.73,
-                         0.36, 0.04, 1.90, 1.74, 0.32, 0.64, 2.01]
+    letters = 0
     my_frequency = []
-    alphabet = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
     for i in message:
-        if i in alphabet:
+        if i in Const.alphabet_upper:
             letters += 1
-    for i in range(32):
+    for i in range(Const.len_of_alphabet):
+        counter = 0
         for j in range(len(message)):
-            if alphabet[i] == message[j]:
+            if Const.alphabet_upper[i] == message[j]:
                 counter += 1
-        my_frequency[i] = (counter / letters) * 100
-    for i in range(32):
-        difference += abs(my_frequency[i] ** 2 - regular_frequency[i] ** 2)
+        my_frequency.append((counter / letters) * 100)
+    for i in range(Const.len_of_alphabet):
+        difference = 0
+        for j in range(Const.len_of_alphabet):
+            difference += (my_frequency[j] - Const.regular_frequency[(i + j) % Const.len_of_alphabet]) ** 2
         if difference < min_difference:
             shift = i
             min_difference = difference
-        difference = 0
+    return shift
+
+
+def decrypt_frequency_analysis(message, original, shift):
+    crypt_message = ''
+    counter = 0
     for i in message:
-        letter = alphabet.find(i)
-        new_letter = (letter + shift) % 33
-        if i in alphabet:
-            crypt_message += alphabet[new_letter]
+        letter = Const.alphabet_upper.find(i)
+        new_letter = (letter + shift - 1) % Const.len_of_alphabet
+        if i in Const.alphabet_upper:
+            if original[counter].islower():
+                crypt_message += Const.alphabet_lower[new_letter]
+            else:
+                crypt_message += Const.alphabet_upper[new_letter]
         else:
             crypt_message += i
-    file_out = (way_2, 'w')
-    file_out.write(crypt_message)
+        counter += 1
+    return crypt_message
 
 
-
-def communication_with_user():
-    print('Введите адрес сообщения для обработки')
-    way_in = str(input())
-    file_in = open(way_in,'r')
-    text = file_in.read().splitelines()
+def frequency_analisys(file_in):
+    with open(file_in, 'r', encoding="utf-8") as f:
+        text = f.readlines()
+    original = ''
     message = ''
     for i in range(len(text)):
-        message = message + text[i].upper() + ' '
-    print('Введите адрес для обработанного сообщения')
-    way_out = str(input())
-    print('Вы хотите зашифровать или дешифровать сообщение?')
-    if str(input()) == 'зашифровать':
-        crypt = True
-    else:
-        crypt = False
-
-    print('Выберете предпочтительный способ шифрования: шифр Цезаря, шифр Виженера или шифр Вернама')
-    type_of_crypt = str(input())
-    if type_of_crypt == 'шифр Цезаря':
-        if crypt:
-            Caesar_crypt(message)
-        else:
-            print('Выберете предпочтительный способ взлома: классический или частотный анализ')
-            type_of_hacking = str(input())
-            if type_of_hacking == 'классический':
-                Caesar_decrypt(message)
-            else:
-                requency_analisys(message)
-    elif type_of_crypt == 'шифр Виженера':
-        if crypt:
-            Vigener_crypt(message)
-        else:
-            Vigener_decrypt(message)
-    elif type_of_crypt == 'шифр Вернама':
-        if crypt:
-            Vernam_crypt(message)
-        else:
-            Vernam_decrypt(message)
-
-communication_with_user()
-
-
-
-
-
-
-
-
-
+        original = original + text[i]
+        message = message + text[i].upper()
+    min_difference = 100000000
+    shift = my_frequency_fill(message, min_difference)
+    crypt_message = decrypt_frequency_analysis(message, original, shift)
+    with open(file_in, 'a', encoding="utf-8") as f:
+        f.write('\n' + 'Расшифрованное сообщение: ' + crypt_message)
