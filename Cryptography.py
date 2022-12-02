@@ -1,20 +1,10 @@
 from random import randint
-
-
-class Const:
-    alphabet_upper = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
-    alphabet_lower = 'абвгдежзийклмнопрстуфхцчшщъыьэюя'
-    len_of_alphabet = 32
-    regular_frequency = [8.01, 1.59, 4.54, 1.70, 2.98, 8.45, 0.04, 0.97, 1.65, 7.35, 1.21, 3.49, 4.40,
-                         3.21, 6.70, 10.97, 2.81, 4.73, 5.47, 6.26, 2.62, 0.26, 0.97, 0.48, 1.44, 0.73,
-                         0.36, 0.04, 1.90, 1.74, 0.32, 0.64, 2.01]
-    order_first_russian_letter = 1040
-    order_last_russian_letter = 1105
-    vernam_shift = 16
+from const import Const
 
 
 def get_message(way_in):
-    with open(way_in, 'r', encoding="utf-8") as f:
+    """ чтение и обработка текста файла"""
+    with open(way_in, 'r', encoding="utf-8", errors='replace') as f:
         text = f.readlines()
     message = ''
     for i in text:
@@ -24,8 +14,8 @@ def get_message(way_in):
         message = message + string + ' '
     return message
 
-
 def caesar_crypt(way_in, key):
+    """ реализация шифра Цезаря"""
     message = get_message(way_in)
     crypt_message = ''
     for i in message:
@@ -40,11 +30,12 @@ def caesar_crypt(way_in, key):
             crypt_message += Const.alphabet_lower[new_letter]
         else:
             crypt_message += i
-    with open(way_in, 'a', encoding="utf-8") as f:
+    with open(way_in, 'a', encoding="utf-8", errors='replace') as f:
         f.write('\n' + "Зашифрованное сообщение: " + crypt_message)
 
 
 def caesar_decrypt(way_in, key):
+    """ реализация дешифра Цезаря"""
     message = get_message(way_in)
     decrypt_message = ''
     for i in message:
@@ -60,11 +51,12 @@ def caesar_decrypt(way_in, key):
         else:
             decrypt_message += i
     print(decrypt_message)
-    with open(way_in, 'a', encoding="utf-8") as f:
+    with open(way_in, 'a', encoding="utf-8", errors='replace') as f:
         f.write('\n' + "Расшифрованное сообщение: " + decrypt_message)
 
 
 def generate_key(message, key):
+    """увеличение длины ключа до длины текста"""
     key = list(key)
     if len(message) == len(key):
         return (key)
@@ -75,6 +67,7 @@ def generate_key(message, key):
 
 
 def vigener_crypt(way_in, key):
+    """ реализация шифра Виженера"""
     message = get_message(way_in)
     key = generate_key(message, key)
     key_upper = key.upper()
@@ -89,11 +82,12 @@ def vigener_crypt(way_in, key):
             else:
                 x = (ord(message[i]) + ord(key_upper[i]) + 1) % Const.len_of_alphabet + ord('А')
             crypt_message += chr(x)
-    with open(way_in, 'a', encoding="utf-8") as f:
+    with open(way_in, 'a', encoding="utf-8", errors='replace') as f:
         f.write('\n' + "Зашифрованное сообщение: " + crypt_message)
 
 
 def vigener_decrypt(way_in, key):
+    """реализация дешифра Виженера"""
     message = get_message(way_in)
     key = generate_key(message, key)
     key_upper = key.upper()
@@ -108,11 +102,12 @@ def vigener_decrypt(way_in, key):
             else:
                 x = (ord(message[i]) - ord(key_upper[i]) - 1) % Const.len_of_alphabet + ord('А')
             decrypt_message += chr(x)
-    with open(way_in, 'a', encoding="utf-8") as f:
+    with open(way_in, 'a', encoding="utf-8", errors='replace') as f:
         f.write('\n' + "Расшифрованное сообщение: " + decrypt_message)
 
 
 def vernam_crypt(way_in):
+    """реализация шифра Вернама"""
     message = get_message(way_in)
     crypt_message = ''
     keys_upper = ''
@@ -129,12 +124,13 @@ def vernam_crypt(way_in):
                 crypt_message += chr((ord(symbol) + key - Const.vernam_shift) % Const.len_of_alphabet + ord('а'))
             else:
                 crypt_message += chr((ord(symbol) + key - Const.vernam_shift) % Const.len_of_alphabet + ord('А'))
-    with open(way_in, 'w', encoding="utf-8") as f:
-        f.write('\n' + 'Зашифрованное сообщение: ' + crypt_message + '\n')
+    with open(way_in, 'a', encoding="utf-8", errors='replace') as f:
+        f.write('\n' + "Зашифрованное сообщение: " + crypt_message + '\n')
         f.write('Ключ шифрования: ' + keys_upper)
 
 
 def decryption(message, keys_lower, keys_upper):
+    """дешифровка Вернама"""
     decrypt_message = ''
     for i, symbol in enumerate(message):
         if ord(message[i]) < Const.order_first_russian_letter or ord(message[i]) > Const.order_last_russian_letter:
@@ -154,6 +150,7 @@ def decryption(message, keys_lower, keys_upper):
 
 
 def vernam_decrypt(way_in, key):
+    """работа с текстовым файлом для дешифровки Вернама"""
     message = get_message(way_in)
     keys_in_lower = key.lower()
     keys_in_upper = key.upper()
@@ -163,11 +160,12 @@ def vernam_decrypt(way_in, key):
         keys_upper.append(Const.alphabet_upper.find(keys_in_upper[i]))
         keys_lower.append(Const.alphabet_lower.find(keys_in_lower[i]))
     decrypt_message = decryption(message, keys_lower, keys_upper)
-    with open(way_in, 'a', encoding="utf-8") as f:
-        f.write('\n' + 'Расшифрованное сообщение: ' + decrypt_message)
+    with open(way_in, 'a', encoding="utf-8", errors='replace') as f:
+        f.write('\n' + "Расшифрованное сообщение: " + decrypt_message)
 
 
 def my_frequency_fill(message, min_difference):
+    """поиск частоты появления букв в данном тексте и определения шага шифрования"""
     shift = 0
     letters = 0
     my_frequency = []
@@ -191,6 +189,7 @@ def my_frequency_fill(message, min_difference):
 
 
 def decrypt_frequency_analysis(message, original, shift):
+    """создание дешифрованного текста"""
     crypt_message = ''
     counter = 0
     for i in message:
@@ -208,7 +207,8 @@ def decrypt_frequency_analysis(message, original, shift):
 
 
 def frequency_analisys(file_in):
-    with open(file_in, 'r', encoding="utf-8") as f:
+    """реализация взлома шифра Цезаря методами частотного анализа"""
+    with open(file_in, 'r', encoding="utf-16") as f:
         text = f.readlines()
     original = ''
     message = ''
@@ -218,5 +218,5 @@ def frequency_analisys(file_in):
     min_difference = 100000000
     shift = my_frequency_fill(message, min_difference)
     crypt_message = decrypt_frequency_analysis(message, original, shift)
-    with open(file_in, 'a', encoding="utf-8") as f:
+    with open(file_in, 'a', encoding="utf-8", errors='replace') as f:
         f.write('\n' + 'Расшифрованное сообщение: ' + crypt_message)
